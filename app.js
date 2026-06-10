@@ -582,14 +582,22 @@ document.addEventListener("DOMContentLoaded", () => {
             keys.forEach(key => {
                 const scoreObj = scores[key];
                 const score = scoreObj ? scoreObj.score : 0.0;
-                const percent = (score / 5.0) * 100;
+                let percent = (score / 5.0) * 100;
+                let scoreText = `${score.toFixed(1)} / 5.0`;
+                let scoreStyle = "";
+
+                if (key === "어문 규범 및 장르 관습 준수") {
+                    percent = 0;
+                    scoreText = "준비중";
+                    scoreStyle = 'style="color: #94a3b8;"';
+                }
 
                 const barItem = document.createElement("div");
                 barItem.className = "bar-item";
                 barItem.innerHTML = `
                     <div class="bar-info">
                         <span class="bar-label">${key}</span>
-                        <span class="bar-score">${score.toFixed(1)} / 5.0</span>
+                        <span class="bar-score" ${scoreStyle}>${scoreText}</span>
                     </div>
                     <div class="bar-track">
                         <div class="bar-fill ${fillClass}" id="bar-fill-${key}" style="width: 0%;"></div>
@@ -804,7 +812,7 @@ document.addEventListener("DOMContentLoaded", () => {
             keys.forEach(key => {
                 const scoreObj = scores[key];
                 const score = scoreObj ? scoreObj.score : 0.0;
-                const desc = scoreObj ? scoreObj.description : "상세 솔루션 평가 데이터가 존재하지 않습니다.";
+                let desc = scoreObj ? scoreObj.description : "상세 솔루션 평가 데이터가 존재하지 않습니다.";
 
                 const maxSentences = score <= 3.0 ? 3 : 1;
                 let targetSentences = [];
@@ -812,7 +820,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     targetSentences = findTargetSentences(originalText, ['문제', '논란', '최근', '실태', '현실', '갈등', '현상'], [], [], maxSentences);
                 } else if (key === "주장의 명료성과 일관성") {
                     targetSentences = findTargetSentences(originalText, ['해야 한다', '필요하다', '요구된다', '바람직하다', '생각한다'], [], [], maxSentences);
-                } else if (key === "논거의 설득력과 적절성") {
+                } else if (key === "논거의 설득력 및 적절성" || key === "논거의 설득력과 적절성") {
                     targetSentences = findTargetSentences(originalText, ['왜냐하면', '때문이다', '이유는', '연구', '통계', '조사', '분석', '자료'], [], [], maxSentences);
                 } else if (key === "논리 전개의 충분성") {
                     targetSentences = findTargetSentences(originalText, ['의미한다', '결과', '사례', '사실', '나타난다', '따라서'], [], [], maxSentences);
@@ -859,24 +867,36 @@ document.addEventListener("DOMContentLoaded", () => {
                     `;
                 }
 
+                let badgeText = `${score.toFixed(1)} / 5.0`;
+                let badgeStyle = "";
+                
+                if (key === "어문 규범 및 장르 관습 준수") {
+                    badgeText = "준비중";
+                    badgeStyle = 'style="background-color: #f1f5f9 !important; color: #94a3b8 !important; border-color: #cbd5e1 !important;"';
+                    desc = "현재 준비중인 채점 기능입니다. 지금은 외부 맞춤법 검사기 프로그램을 이용해 주세요.";
+                    targetSentenceHtml = "";
+                }
+
                 const card = document.createElement("div");
                 card.className = `eval-card ${domainClass}`;
                 card.id = `eval-card-${key}`;
                 card.innerHTML = `
                     <div class="eval-header">
                         <div class="eval-title">${key}</div>
-                        <span class="eval-score-badge">${score.toFixed(1)} / 5.0</span>
+                        <span class="eval-score-badge" ${badgeStyle}>${badgeText}</span>
                     </div>
                     <div class="eval-body">${desc}</div>
                     ${targetSentenceHtml}
                 `;
 
-                // 점수대별 가중 톤 클래스 부여 (1.0~2.0 다홍색, 2.1~2.9 주황색)
-                const roundedScore = parseFloat(score.toFixed(1));
-                if (roundedScore >= 1.0 && roundedScore <= 2.0) {
-                    card.classList.add("card-score-danger");
-                } else if (roundedScore >= 2.1 && roundedScore <= 2.9) {
-                    card.classList.add("card-score-warning");
+                if (key !== "어문 규범 및 장르 관습 준수") {
+                    // 점수대별 가중 톤 클래스 부여 (1.0~2.0 다홍색, 2.1~2.9 주황색)
+                    const roundedScore = parseFloat(score.toFixed(1));
+                    if (roundedScore >= 1.0 && roundedScore <= 2.0) {
+                        card.classList.add("card-score-danger");
+                    } else if (roundedScore >= 2.1 && roundedScore <= 2.9) {
+                        card.classList.add("card-score-warning");
+                    }
                 }
 
                 container.appendChild(card);
